@@ -1,0 +1,30 @@
+# Maven
+target/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.factorypath
+bin/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+<<<<<<< HEAD
+=======
+
+# VS Code
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Por si alguien exporta un zip dentro del proyecto sin querer
+*.zip
+.metadata/
+.~lock.*#
