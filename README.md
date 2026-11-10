@@ -4,6 +4,8 @@ Los fans descubren artistas emergentes en un feed, les dan su **pepa** (su firma
 
 ---
 
+# Comit 1.1.1
+
 ## Resumen de este commit
 
 Primer commit de la rama `feature/modelo`: **migra la base de datos del proyecto anterior (bandas y álbumes) al nuevo alcance, con 7 tablas.**
