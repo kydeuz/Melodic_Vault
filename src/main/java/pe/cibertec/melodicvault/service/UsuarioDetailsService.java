@@ -11,12 +11,18 @@ import pe.cibertec.melodicvault.modelo.Usuario;
 
 @Service
 public class UsuarioDetailsService implements UserDetailsService {
-    @Autowired private IUsuario repo;
+
+    @Autowired
+    private IUsuario data;
+
     @Override
-    public UserDetails loadUserByUsername(String username) {
-        Usuario u = repo.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("No existe"));
-        return User.withUsername(u.getUsername())
-            .password(u.getPassword()).roles(u.getRol()).build();
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Usuario u = data.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Credenciales inválidas"));
+
+        return User.withUsername(u.getEmail())
+                .password(u.getPassword())
+                .roles(u.getRol())
+                .build();
     }
 }

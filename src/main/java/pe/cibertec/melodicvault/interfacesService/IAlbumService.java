@@ -1,26 +1,13 @@
 package pe.cibertec.melodicvault.interfacesService;
 
-import java.util.List;
-import java.util.Optional;
-
 import pe.cibertec.melodicvault.modelo.Album;
-import pe.cibertec.melodicvault.modelo.Cancion;
+import java.util.Optional;
 
 public interface IAlbumService {
 
-    List<Album> listar();
-
     Optional<Album> listarId(int id);
 
-    int save(Album a);
+    Album save(Album album);
 
     void delete(int id);
-    
-    List<Album> buscar(String texto);
-    
-    List<Object[]> estadisticas();
-    
-    List<Cancion> listadoDeCanciones(int id);
-    
-    Optional<Album> findWithCancionesByIdAlbum(int idAlbum);
 }

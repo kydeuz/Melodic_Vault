@@ -11,115 +11,32 @@ public class Album {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_album")
     private Integer idAlbum;
 
     @NotBlank(message = "El título es obligatorio")
     @Size(max = 100)
+    @Column(nullable = false, length = 100)
     private String titulo;
 
     @NotNull(message = "El año es obligatorio")
+    @Column(nullable = false)
     private Integer anio;
 
-    @NotBlank(message = "El tipo es obligatorio")
-    private String tipo;
+    @NotNull(message = "Debe seleccionar un artista")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_artista", nullable = false)
+    private Artista artista;
 
-    @DecimalMin(value = "0.0", message = "El rating mínimo es 0")
-    @DecimalMax(value = "10.0", message = "El rating máximo es 10")
-    private Double rating;
+    public Integer getIdAlbum() { return idAlbum; }
+    public void setIdAlbum(Integer idAlbum) { this.idAlbum = idAlbum; }
 
-    private String formato;
-    
-    @Size(max = 255)
-    private String portadaUrl;
+    public String getTitulo() { return titulo; }
+    public void setTitulo(String titulo) { this.titulo = titulo; }
 
-    @Size(max = 500)
-    private String descripcion;
+    public Integer getAnio() { return anio; }
+    public void setAnio(Integer anio) { this.anio = anio; }
 
-    @NotNull(message = "Debe seleccionar una banda")
-    @ManyToOne
-    @JoinColumn(name = "id_banda", nullable = false)
-    private Banda banda;
-
-    public Integer getIdAlbum() {
-        return idAlbum;
-    }
-    
-    
-    @OneToMany(mappedBy = "album", cascade = CascadeType.REMOVE)
-    @OrderBy("numeroPista ASC")
-    private List<Cancion> canciones;
-
-    public List<Cancion> getCanciones() { return canciones; }
-    public void setCanciones(List<Cancion> canciones) { this.canciones = canciones; }
-    
-    
-
-    public void setIdAlbum(Integer idAlbum) {
-        this.idAlbum = idAlbum;
-    }
-
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
-
-    public Integer getAnio() {
-        return anio;
-    }
-
-    public void setAnio(Integer anio) {
-        this.anio = anio;
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
-    public Double getRating() {
-        return rating;
-    }
-
-    public void setRating(Double rating) {
-        this.rating = rating;
-    }
-
-    public String getFormato() {
-        return formato;
-    }
-
-    public void setFormato(String formato) {
-        this.formato = formato;
-    }
-
-    public String getPortadaUrl() {
-        return portadaUrl;
-    }
-
-    public void setPortadaUrl(String portadaUrl) {
-        this.portadaUrl = portadaUrl;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-
-    public Banda getBanda() {
-        return banda;
-    }
-
-    public void setBanda(Banda banda) {
-        this.banda = banda;
-    }
+    public Artista getArtista() { return artista; }
+    public void setArtista(Artista artista) { this.artista = artista; }
 }

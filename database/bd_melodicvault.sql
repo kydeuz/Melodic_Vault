@@ -1,13 +1,5 @@
 -- ============================================================
 -- Melodic Vault - script de base de datos (rama feature/modelo)
--- Cambios respecto a main:
---   * banda  ->  artista (nuevos campos del documento Entidades y ER)
---   * nueva tabla genero (catalogo; artista.id_genero reemplaza el texto libre)
---   * nueva tabla firma (voto unico por usuario y artista)
---   * nueva tabla sala (GIRA / LIVE) para completar las 7 entidades
---   * album.id_banda  ->  album.id_artista
--- Sin tocar en este paso: usuario (correo y ciudad llegan con el login JWT),
--- columnas de album y cancion (se simplifican despues).
 -- ============================================================
 DROP DATABASE IF EXISTS bd_melodicvault;
 CREATE DATABASE bd_melodicvault;
