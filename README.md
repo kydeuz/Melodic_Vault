@@ -129,8 +129,7 @@ La app arranca con `spring.jpa.hibernate.ddl-auto=validate`, así que las entida
 
 ## Siguientes pasos (Sprint 1)
 
-- Login, registro y filtro JWT (punto de control: 14 de noviembre).
-- Servicio de Firma (meta, tope diario y medallas).
+- Login, registro y filtro JWT (punto de control: 14 de noviembre)..
 - REST de Artista y Género: controllers nuevos, DTOs y respuestas 403, 404 y 409.
-- Harold: REST de Álbum y Canción, y el servicio y REST de Sala.
-- Celeste: conectar Angular con los servicios reales.
+- Harold: REST de Álbum y Canción.
+- Celeste: conectar entrar, registro y GET /api/artistas a servicios reales cuando el login esté arriba.
