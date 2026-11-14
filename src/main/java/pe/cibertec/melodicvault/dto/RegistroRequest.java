@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 public record RegistroRequest(
 
         @NotBlank(message = "El correo es obligatorio")
-        @Email
+        @Email(message = "El correo no es válido")
         @Size(max = 100)
         String email,
 
