@@ -133,3 +133,51 @@ La app arranca con `spring.jpa.hibernate.ddl-auto=validate`, así que las entida
 - REST de Artista y Género: controllers nuevos, DTOs y respuestas 403, 404 y 409.
 - Harold: REST de Álbum y Canción.
 - Celeste: conectar entrar, registro y GET /api/artistas a servicios reales cuando el login esté arriba.
+
+---
+
+# Commit 1.1.3
+
+## Resumen de este commit
+
+Login, registro y filtro JWT funcionando de punta a punta: la API ya no depende
+de Spring Security por formularios, sino de JSON Web Tokens. Incluye el
+backend completo (DTOs, JwtService, JwtAuthFilter, SecurityConfig stateless,
+AuthController, manejo de errores) y 5 pruebas automatizadas. Cierra el punto
+de control del 14 de noviembre.
+
+## Por qué
+
+El commit 1.1.2 dejó las entidades y repositorios listos, pero la API no
+tenía forma de autenticar a nadie: no había login, ni token, ni reglas de
+quién puede entrar a qué ruta. Sin esto, Celeste no puede conectar Angular
+contra servicios reales y Harold no puede probar Álbum ni Canción con un
+usuario de verdad.
+
+## Qué cambió
+
+| Antes | Ahora | Motivo |
+|---|---|---|
+| `thymeleaf` + `thymeleaf-extras-springsecurity6` + JasperReports en el `pom.xml` | Eliminados; se agregan `jjwt-api`, `jjwt-impl`, `jjwt-jackson` y `spring-security-test` | El proyecto es una API REST, no sirve vistas; se necesita JWT y pruebas de endpoints protegidos |
+| `application.properties` sin prefijo (`expiracion-horas`, `firmas.meta`, `tope-diario`) | Todo bajo `melodicvault.` (`melodicvault.jwt.expiracion-horas`, `melodicvault.firmas.meta`, `melodicvault.firmas.tope-diario`) | Coincide con las claves que leen los `@Value` del código |
+| `RegistroRequest` como clase con getters/setters | DTOs como `record` (`LoginRequest`, `LoginResponse`, `RegistroRequest`, `RegistroResponse`, `ErrorResponse`) | Son datos inmutables sin lógica; menos código repetido |
+| Sin JWT | `JwtService`: genera y lee el token (HS256, secreto en variable de entorno, vencimiento configurable) | Base de la autenticación *stateless* |
+| Sin filtro de seguridad propio | `JwtAuthFilter`: lee `Authorization: Bearer`, autentica si el token es válido, ignora si no (nunca lanza error) | Deja que las rutas públicas sigan como anónimas con token vencido, tal como pide el contrato |
+| `SecurityConfig` de formularios (`formLogin`, `UsuarioDetailsService`) | `SecurityConfig` stateless: CSRF off, CORS para `localhost:4200`, rutas públicas (`/api/auth/**`, `GET /api/artistas`, `GET /api/generos`, `/clips/**`) vs protegidas, 401/403 en el formato del contrato | El login ya no pasa por el flujo estándar de Spring Security, lo valida `AuthController` a mano |
+| Sin `AuthController` | `AuthController`: `POST /api/auth/login` (BCrypt, mismo mensaje para correo inexistente y clave incorrecta) y `POST /api/auth/registro` (rol siempre `FAN`, 409 si el correo existe) | Son los dos únicos endpoints públicos sin token |
+| Sin manejo central de errores | `GlobalExceptionHandler` (`@RestControllerAdvice`) con el formato `{error, campos}`; nuevas excepciones `CredencialesInvalidasException` y `CorreoDuplicadoException` | Se reutiliza en todos los REST que vienen después (Artista, Álbum, Canción, Sala) |
+| Sin pruebas del login | `AuthControllerTest` con `@WebMvcTest`: campos vacíos (400), correo inexistente (401), clave incorrecta (401), login exitoso (200 con token), endpoint protegido sin token (401) | Pide la rúbrica; corre sin depender de la base de datos ni de la variable de entorno real |
+
+## Verificación
+
+Las 5 pruebas de `AuthControllerTest` pasan en verde con `mvn test`, sin necesitar
+MySQL levantado ni la variable `JWT_SECRETO` del sistema (el test trae su propia
+clave de prueba).
+
+## Siguientes pasos (Sprint 1, entrega 18 de noviembre)
+
+- `GET /api/generos`.
+- REST de Artista: `GET /api/artistas` (paginado), `GET /api/artistas/{id o slug}`,
+  `POST`, `PUT` (con `version`), `DELETE`.
+- Harold: revisión de avance del SEPTE y pruebas de datos.
+- Celeste: conectar entrar, registro y `GET /api/artistas` a los servicios reales.
