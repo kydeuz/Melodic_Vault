@@ -7,6 +7,7 @@ import pe.cibertec.melodicvault.interfacesService.IGeneroService;
 import pe.cibertec.melodicvault.modelo.Genero;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GeneroService implements IGeneroService {
@@ -21,4 +22,10 @@ public class GeneroService implements IGeneroService {
     public List<Genero> listar() {
         return generoRepo.findAll(Sort.by(Sort.Direction.ASC, "nombre"));
     }
+
+    @Override
+    public Optional<Genero> buscarPorId(int id) {
+        return generoRepo.findById(id);
+    }
+
 }

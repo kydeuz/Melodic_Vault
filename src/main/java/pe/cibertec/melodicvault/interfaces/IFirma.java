@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import pe.cibertec.melodicvault.modelo.Firma;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface IFirma extends JpaRepository<Firma, Integer> {
 
@@ -20,4 +21,7 @@ public interface IFirma extends JpaRepository<Firma, Integer> {
     @Query("select f.ciudad, count(f) from Firma f where f.artista.idArtista = :id " +
             "group by f.ciudad order by count(f) desc")
     List<Object[]> ciudadesPorArtista(@Param("id") Integer idArtista);
+
+    Optional<Firma> findByUsuarioIdUsuarioAndArtistaIdArtista(Integer idUsuario, Integer idArtista);
+
 }

@@ -181,3 +181,91 @@ clave de prueba).
   `POST`, `PUT` (con `version`), `DELETE`.
 - Harold: revisión de avance del SEPTE y pruebas de datos.
 - Celeste: conectar entrar, registro y `GET /api/artistas` a los servicios reales.
+
+
+---
+# Commit 1.1.4
+Resumen de este commit
+
+La API ya tiene vida propia: Género y Artista quedan expuestos de punta a punta. El feed se puede paginar, el perfil público se abre por id o por @slug, y un fan puede crear, editar y eliminar su perfil de artista, con permisos de dueño o ADMIN y control de versiones. Cierra el carril de API de César para el Sprint 1.
+
+Incluye los controllers, los DTOs, el mapeo al JSON del contrato y las excepciones nuevas con su respuesta de error.
+Por qué
+
+Hasta el commit 1.1.3 la API sabía quién eras, pero no tenía nada que mostrarte. Faltaba todo lo de negocio:
+
+    Celeste no podía armar el selector de género sin GET /api/generos.
+    Tampoco podía conectar el feed ni el perfil público sin el listado y el detalle de artistas.
+    Nadie podía crear, editar ni borrar un perfil desde Mi perfil sin POST, PUT y DELETE.
+
+Ahora cada pantalla del Sprint 1 tiene un servicio real al que apuntar.
+Los 6 servicios nuevos
+Método 	Ruta 	Quién 	Respuestas
+GET 	/api/generos 	Público 	200
+GET 	/api/artistas?page=0&size=10 	Público (con token rellena miNumero) 	200
+GET 	/api/artistas/{id o slug} 	Público 	200, 404
+POST 	/api/artistas 	Con sesión y sin perfil 	201, 400, 401, 409
+PUT 	/api/artistas/{id} 	Dueño o ADMIN 	200, 400, 401, 403, 404, 409
+DELETE 	/api/artistas/{id} 	Dueño o ADMIN 	204, 401, 403, 404
+Así se ve una tarjeta del feed
+
+Cada artista del listado trae todo lo que la tarjeta necesita en una sola llamada. La meta sale de la configuración del servidor, nunca de un 50 escrito a mano:
+
+{
+"id": 1,
+"slug": "luna",
+"nombre": "Luna Chaska",
+"genero": "Indie folk",
+"firmas": 12,
+"meta": 50,
+"miNumero": null,
+"proximaSala": null,
+"ciudades": [ { "ciudad": "Lima", "firmas": 8 }, { "ciudad": "Arequipa", "firmas": 3 } ]
+}
+
+Con token válido, miNumero trae la medalla del usuario. Con token vencido o sin token, la respuesta sale como anónima y no falla.
+Cómo funciona
+
+Crear un perfil. El usuario con sesión manda slug, nombre y generoId. El servidor responde 400 si el género no existe, y 409 si el usuario ya tiene perfil o si el enlace ya está tomado. Quien lo crea queda como dueño.
+
+Editar sin pisarse. El PUT lleva la version que Angular recibió en el detalle:
+
+    El artista está en versión 0 y se edita con version 0. Responde 200 y la versión sube a 1.
+    Si alguien más lo editó mientras tanto, la versión ya es otra. Responde 409 y pide recargar, en vez de borrar lo que el otro cambió.
+
+Quién puede tocar qué. PermisosArtista aplica la regla en un solo lugar: el dueño del artista o un ADMIN pasan; cualquier otro recibe 403, aunque escriba la URL a mano.
+
+Eliminar de verdad. El DELETE responde 204, borra en cascada álbumes, canciones, firmas y salas, elimina el archivo de clip y deja al usuario libre para crear otro perfil.
+Qué cambió
+Antes 	Ahora 	Motivo
+Un solo controller (AuthController) 	GeneroController y ArtistaController 	Exponen los servicios del contrato
+Sin DTOs de artista 	Records: ArtistaResumen, ArtistaDetalle, ArtistaCrearRequest, ArtistaEditarRequest, GeneroResponse, PaginaResponse, SalaResumen, CiudadFirmas, AlbumResumen, CancionResumen 	Nombres de campo exactos del contrato
+Sin mapeo entidad a JSON 	ArtistaMapper 	Arma el JSON y toma la meta de melodicvault.firmas.meta
+Sin lógica de gestión 	ArtistaGestionService (crear, editar, eliminar) y PermisosArtista 	Controllers delgados y la regla de dueño o ADMIN en un solo lugar
+Excepciones solo de login 	Nuevas: RecursoNoEncontradoException (404), ConflictoException (409), ProhibidoException (403) y DatosInvalidosException (400 con campos) 	Cubren los errores del contrato
+GlobalExceptionHandler sin 404, 403 ni conflicto de versión 	Handlers nuevos, incluido ObjectOptimisticLockingFailureException como 409 	Mismo formato {error, campos}
+Repositorios sin consultas para el detalle 	IArtista con @EntityGraph en findById y findBySlug; IFirma con búsqueda por usuario y artista; IAlbum e ICancion con listados ordenados; IGeneroService.buscarPorId 	Evitan errores de carga diferida y alimentan miNumero y los álbumes anidados
+Verificación
+
+Probado a mano en Postman contra la API en local. Todo salió como se esperaba:
+
+    ✅ GET /api/generos sin token: 200, géneros ordenados por nombre.
+    ✅ GET /api/artistas?page=0&size=10 sin token: 200, con miNumero en null.
+    ✅ GET /api/artistas/{id} y /{slug}: 200. Con un artista que no existe: 404 con {"error":"Artista no encontrado"}.
+    ✅ POST sin token: 401. Con sesión: 201. Repetido: 409. Enlace tomado: 409. generoId inexistente: 400 con el campo generoId.
+    ✅ PUT con la versión vigente: 200 y la versión sube. Repetido con la versión vieja: 409.
+    ✅ PUT y DELETE de otro usuario: 403. Con ADMIN: permitido.
+    ✅ DELETE: 204, y el GET siguiente da 404.
+
+Para el equipo
+
+    Harold: PermisosArtista (usuarioActual y exigirDuenoOAdmin) sirve tal cual para el 403 de Álbum, Canción, Sala y clip. Para los clips, usen la misma clave melodicvault.clips.carpeta.
+    Celeste: ya puedes conectar el feed (GET /api/artistas), el perfil público (/api/artistas/{slug}), el selector de género y el alta, la edición y la baja del perfil. Guarda la version del detalle y mándala en el PUT.
+
+Siguientes pasos (Sprint 2, entrega 28 de noviembre)
+
+    Firma: POST /api/artistas/{id}/firmar, GET /api/firmas/mias, meta configurable, tope diario, medallas y demanda por ciudad.
+    LIVE inicial "Primer live con su gente" al llegar a la meta.
+    Feed de descubrimiento (scroll, clip de 10 s tras 0,7 s y "Es una pepa" desde la tarjeta).
+    Harold: REST de Álbum, Canción, Sala y subida de clip.
+    Celeste: pasar Mi perfil y el feed a los servicios reales.

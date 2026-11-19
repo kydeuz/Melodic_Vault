@@ -15,6 +15,8 @@ import java.util.Optional;
 
 public interface IArtista extends JpaRepository<Artista, Integer> {
 
+
+    @EntityGraph(attributePaths = "genero")
     Optional<Artista> findBySlug(String slug);
 
     boolean existsBySlug(String slug);
