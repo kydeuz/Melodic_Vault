@@ -7,6 +7,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import pe.cibertec.melodicvault.dto.ErrorResponse;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import java.util.LinkedHashMap;
@@ -69,4 +70,15 @@ public class GlobalExceptionHandler {
                 "Otro usuario modificó este artista. Recarga e intenta de nuevo.", null));
     }
 
+    @ExceptionHandler(ArchivoInvalidoException.class)
+    public ResponseEntity<ErrorResponse> handleArchivoInvalido(ArchivoInvalidoException ex) {
+        return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage(), null));
+    }
+
+    // el archivo pasó el límite de spring.servlet.multipart.max-file-size
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleArchivoGrande(MaxUploadSizeExceededException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse("El archivo no puede superar 15 MB", null));
+    }
 }
